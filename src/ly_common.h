@@ -360,6 +360,7 @@ struct ly_ctx {
     struct ly_ht *leafref_links_ht;   /**< hash table of leafref links between term data nodes */
     struct ly_set plugins_types;      /**< context specific set of type plugins */
     struct ly_set plugins_extensions; /**< contets specific set of extension plugins */
+    ATOMIC_T next_schema_id;          /**< next YANG Schema Item iDentifiers ID to use (RFC-9595 for CBOR) */
 };
 
 /**

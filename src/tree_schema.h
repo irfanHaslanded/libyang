@@ -1433,6 +1433,7 @@ struct lysc_node {
     const char *dsc;                 /**< description */
     const char *ref;                 /**< reference */
     struct lysc_ext_instance *exts;  /**< list of the extension instances ([sized array](@ref sizedarrays)) */
+    uint32_t schema_id;              /**< YANG Schema Item iDentifiers (RFC-9595 for CBOR) */
     void *priv;                      /**< private arbitrary user data, not used by libyang unless ::LY_CTX_SET_PRIV_PARSED is set */
 };
 
@@ -1452,6 +1453,7 @@ struct lysc_node_action_inout {
             const char *dsc;         /**< ALWAYS NULL, compatibility member with ::lysc_node */
             const char *ref;         /**< ALWAYS NULL, compatibility member with ::lysc_node */
             struct lysc_ext_instance *exts; /**< list of the extension instances ([sized array](@ref sizedarrays)) */
+            uint32_t schema_id;             /**< YANG Schema Item iDentifiers (RFC-9595 for CBOR) */
             void *priv;              /** private arbitrary user data, not used by libyang unless ::LY_CTX_SET_PRIV_PARSED is set */
         };
     };
@@ -1479,6 +1481,7 @@ struct lysc_node_action {
             const char *dsc;         /**< description */
             const char *ref;         /**< reference */
             struct lysc_ext_instance *exts; /**< list of the extension instances ([sized array](@ref sizedarrays)) */
+            uint32_t schema_id;             /**< YANG Schema Item iDentifiers (RFC-9595 for CBOR) */
             void *priv;              /** private arbitrary user data, not used by libyang unless ::LY_CTX_SET_PRIV_PARSED is set */
         };
     };
@@ -1510,6 +1513,7 @@ struct lysc_node_notif {
             const char *dsc;         /**< description */
             const char *ref;         /**< reference */
             struct lysc_ext_instance *exts; /**< list of the extension instances ([sized array](@ref sizedarrays)) */
+            uint32_t schema_id;             /**< YANG Schema Item iDentifiers (RFC-9595 for CBOR) */
             void *priv;              /** private arbitrary user data, not used by libyang unless ::LY_CTX_SET_PRIV_PARSED is set */
         };
     };
@@ -1540,6 +1544,7 @@ struct lysc_node_container {
             const char *dsc;         /**< description */
             const char *ref;         /**< reference */
             struct lysc_ext_instance *exts; /**< list of the extension instances ([sized array](@ref sizedarrays)) */
+            uint32_t schema_id;             /**< YANG Schema Item iDentifiers (RFC-9595 for CBOR) */
             void *priv;              /**< private arbitrary user data, not used by libyang unless ::LY_CTX_SET_PRIV_PARSED is set */
         };
     };
@@ -1570,6 +1575,7 @@ struct lysc_node_case {
             const char *dsc;         /**< description */
             const char *ref;         /**< reference */
             struct lysc_ext_instance *exts; /**< list of the extension instances ([sized array](@ref sizedarrays)) */
+            uint32_t schema_id;             /**< YANG Schema Item iDentifiers (RFC-9595 for CBOR) */
             void *priv;              /**< private arbitrary user data, not used by libyang unless ::LY_CTX_SET_PRIV_PARSED is set */
         };
     };
@@ -1598,6 +1604,7 @@ struct lysc_node_choice {
             const char *dsc;         /**< description */
             const char *ref;         /**< reference */
             struct lysc_ext_instance *exts; /**< list of the extension instances ([sized array](@ref sizedarrays)) */
+            uint32_t schema_id;             /**< YANG Schema Item iDentifiers (RFC-9595 for CBOR) */
             void *priv;              /**< private arbitrary user data, not used by libyang unless ::LY_CTX_SET_PRIV_PARSED is set */
         };
     };
@@ -1626,6 +1633,7 @@ struct lysc_node_leaf {
             const char *dsc;         /**< description */
             const char *ref;         /**< reference */
             struct lysc_ext_instance *exts; /**< list of the extension instances ([sized array](@ref sizedarrays)) */
+            uint32_t schema_id;             /**< YANG Schema Item iDentifiers (RFC-9595 for CBOR) */
             void *priv;              /**< private arbitrary user data, not used by libyang unless ::LY_CTX_SET_PRIV_PARSED is set */
         };
     };
@@ -1657,6 +1665,7 @@ struct lysc_node_leaflist {
             const char *dsc;         /**< description */
             const char *ref;         /**< reference */
             struct lysc_ext_instance *exts; /**< list of the extension instances ([sized array](@ref sizedarrays)) */
+            uint32_t schema_id;             /**< YANG Schema Item iDentifiers (RFC-9595 for CBOR) */
             void *priv;              /**< private arbitrary user data, not used by libyang unless ::LY_CTX_SET_PRIV_PARSED is set */
         };
     };
@@ -1693,6 +1702,7 @@ struct lysc_node_list {
             const char *dsc;         /**< description */
             const char *ref;         /**< reference */
             struct lysc_ext_instance *exts; /**< list of the extension instances ([sized array](@ref sizedarrays)) */
+            uint32_t schema_id;             /**< YANG Schema Item iDentifiers (RFC-9595 for CBOR) */
             void *priv;              /**< private arbitrary user data, not used by libyang unless ::LY_CTX_SET_PRIV_PARSED is set */
         };
     };
@@ -1727,6 +1737,7 @@ struct lysc_node_anydata {
             const char *dsc;         /**< description */
             const char *ref;         /**< reference */
             struct lysc_ext_instance *exts; /**< list of the extension instances ([sized array](@ref sizedarrays)) */
+            uint32_t schema_id;             /**< YANG Schema Item iDentifiers (RFC-9595 for CBOR) */
             void *priv;              /**< private arbitrary user data, not used by libyang unless ::LY_CTX_SET_PRIV_PARSED is set */
         };
     };

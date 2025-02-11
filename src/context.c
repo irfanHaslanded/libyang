@@ -389,6 +389,9 @@ ly_ctx_new(const char *search_dir, uint16_t options, struct ly_ctx **new_ctx)
         ctx->flags &= ~LY_CTX_EXPLICIT_COMPILE;
     }
 
+    /* assign a starting next_schema_id from the experimental range */
+    ATOMIC_STORE_RELAXED(ctx->next_schema_id, 70001);
+
 cleanup:
     ly_in_free(in, 0);
     lys_unres_glob_erase(&unres);

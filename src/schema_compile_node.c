@@ -2698,6 +2698,14 @@ lys_compile_node_flags(struct lysc_ctx *ctx, uint16_t parsed_flags, uint16_t inh
     return LY_SUCCESS;
 }
 
+static void
+lys_compile_node_assign_sid(struct lysc_ctx *ctx, struct lysc_node *node)
+{
+    /* FIXME TODO get the correct schema_id for the node from a .sid file */
+    /* assign the next available schema_id for this node */
+    node->schema_id = ATOMIC_INC_RELAXED(ctx->ctx->next_schema_id);
+}
+
 static LY_ERR
 lys_compile_node_(struct lysc_ctx *ctx, struct lysp_node *pnode, struct lysc_node *parent, uint16_t inherited_flags,
         LY_ERR (*node_compile_spec)(struct lysc_ctx *, struct lysp_node *, struct lysc_node *),
@@ -2714,6 +2722,8 @@ lys_compile_node_(struct lysc_ctx *ctx, struct lysp_node *pnode, struct lysc_nod
     node->parent = parent;
     node->prev = node;
     node->priv = ctx->ctx->flags & LY_CTX_SET_PRIV_PARSED ? pnode : NULL;
+
+    lys_compile_node_assign_sid(ctx, node);
 
     /* compile any deviations for this node */
     LY_CHECK_GOTO(ret = lys_compile_node_deviations_refines(ctx, pnode, parent, &dev_pnode, &not_supported), error);
@@ -2785,6 +2795,7 @@ lys_compile_node_(struct lysc_ctx *ctx, struct lysp_node *pnode, struct lysc_nod
 
 error:
     lysc_node_free(&ctx->free_ctx, node, 0);
+    node = NULL;
 
 cleanup:
     if (ret && dev_pnode) {
