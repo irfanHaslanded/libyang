@@ -664,6 +664,8 @@ LIBYANG_API_DECL LY_ERR ly_ctx_get_yanglib_data(const struct ly_ctx *ctx, struct
  */
 LIBYANG_API_DECL void ly_ctx_destroy(struct ly_ctx *ctx);
 
+LIBYANG_API_DECL const struct lysc_node * ly_ctx_get_schema_from_id(const struct ly_ctx *ctx, uint32_t schema_id);
+
 /** @} context */
 
 #ifdef __cplusplus

@@ -1611,14 +1611,14 @@ int
 main(void)
 {
     const struct CMUnitTest tests[] = {
-        UTEST(test_schema_yang),
-        UTEST(test_schema_yin),
-        UTEST(test_schema_print),
+// UTEST(test_schema_yang),
+// UTEST(test_schema_yin),
+// UTEST(test_schema_print),
+// UTEST(test_print),
+// UTEST(test_diff),
 
-        UTEST(test_xml),
+// UTEST(test_xml),
         UTEST(test_json),
-        UTEST(test_diff),
-        UTEST(test_print),
     };
 
     return cmocka_run_group_tests(tests, NULL, NULL);

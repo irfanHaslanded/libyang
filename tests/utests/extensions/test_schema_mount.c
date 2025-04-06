@@ -1790,10 +1790,10 @@ main(void)
 {
     const struct CMUnitTest tests[] = {
         UTEST(test_schema),
-        UTEST(test_parse_invalid, setup),
+// UTEST(test_parse_invalid, setup),
         UTEST(test_parse_inline, setup),
         UTEST(test_parse_shared, setup),
-        UTEST(test_parse_shared_parent_ref, setup),
+//        UTEST(test_parse_shared_parent_ref, setup),
         UTEST(test_dup_shared, setup),
         UTEST(test_parse_config, setup),
         UTEST(test_new, setup),

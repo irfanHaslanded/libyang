@@ -2704,6 +2704,8 @@ lys_compile_node_assign_sid(struct lysc_ctx *ctx, struct lysc_node *node)
     /* FIXME TODO get the correct schema_id for the node from a .sid file */
     /* assign the next available schema_id for this node */
     node->schema_id = ATOMIC_INC_RELAXED(ctx->ctx->next_schema_id);
+    /* Add the schema node to the context schema_nodes for quick search */
+    ly_set_add(&ctx->ctx->schema_nodes, node, 1, NULL);
 }
 
 static LY_ERR

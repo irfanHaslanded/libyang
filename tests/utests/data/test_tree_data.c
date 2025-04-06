@@ -17,6 +17,7 @@
 #include "libyang.h"
 #include "ly_common.h"
 #include "path.h"
+#include "tree_data_serde.h"
 #include "xpath.h"
 
 static int
@@ -801,6 +802,32 @@ test_data_leafref_nodes2(void **state)
     lyd_free_all(tree);
 }
 
+static void
+test_flatten(void **state)
+{
+    struct ly_out *out = NULL;
+    struct ly_in *in = NULL;
+    struct lyd_node *tree_in, *tree_out;
+    const char *data;
+    char *buf = NULL;
+
+    assert_int_equal(LY_SUCCESS, ly_out_new_memory(&buf, 0, &out));
+
+    data = "<l1 xmlns=\"urn:tests:a\"><a>a</a><b>b</b><c>x</c></l1>";
+    CHECK_PARSE_LYD(data, 0, LYD_VALIDATE_PRESENT, tree_in);
+
+    assert_int_equal(LY_SUCCESS, lyd_print_flattened(tree_in, out));
+
+    assert_int_equal(LY_SUCCESS, ly_in_new_memory(buf, &in));
+    assert_int_equal(LY_SUCCESS, lyd_parse_flattened(UTEST_LYCTX, in, &tree_out));
+
+    assert_int_equal(LY_SUCCESS, lyd_compare_siblings(tree_in, tree_out, LYD_COMPARE_FULL_RECURSION));
+    lyd_free_all(tree_in);
+    lyd_free_all(tree_out);
+    ly_in_free(in, 0);
+    ly_out_free(out, NULL, 1);
+}
+
 int
 main(void)
 {
@@ -816,6 +843,7 @@ main(void)
         UTEST(test_lyxp_vars),
         UTEST(test_data_leafref_nodes),
         UTEST(test_data_leafref_nodes2),
+        UTEST(test_flatten, setup),
     };
 
     return cmocka_run_group_tests(tests, NULL, NULL);

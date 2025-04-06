@@ -17,13 +17,17 @@
 
 #include "dict.h"
 #include "hash_table.h"
+#include "in.h"
 #include "log.h"
 #include "ly_common.h"
+#include "out.h"
 #include "plugins_exts/metadata.h"
 #include "plugins_types.h"
+#include "printer_data.h"
 #include "tree.h"
 #include "tree_data.h"
 #include "tree_data_internal.h"
+#include "tree_data_serde.h"
 #include "tree_data_sorted.h"
 #include "tree_schema.h"
 
@@ -298,6 +302,12 @@ lyd_free_siblings(struct lyd_node *node)
 LIBYANG_API_DEF void
 lyd_free_all(struct lyd_node *node)
 {
+    struct ly_out *out = NULL;
+    struct ly_in *in = NULL;
+    struct lyd_node *tree_out = NULL;
+    char *buf = NULL;
+    char *str1 = NULL, *str2 = NULL;
+
     if (!node) {
         return;
     }
@@ -305,5 +315,35 @@ lyd_free_all(struct lyd_node *node)
     /* get top-level node */
     for ( ; node->parent; node = lyd_parent(node)) {}
 
+    if (node->schema) {
+        assert(!ly_out_new_memory(&buf, 0, &out));
+        /* TODO FIXME remove later irfan flatten print and parse here */
+        fprintf(stderr, "%s attempt to flatten and parse\n", __func__);
+        lyd_print_fd(2, node, 1, 5);
+        fprintf(stderr, "%s flattening\n", __func__);
+
+        // print
+        assert(!lyd_print_flattened(node, out));
+
+        // prepare to read
+        assert(!ly_in_new_memory(buf, &in));
+        // parse
+        assert(!lyd_parse_flattened(node->schema->module->ctx, in, &tree_out));
+        // compare
+// assert(!lyd_compare_siblings(node, tree_out, LYD_COMPARE_FULL_RECURSION | LYD_COMPARE_OPAQ));
+        lyd_print_mem(&str1, node, LYD_XML, 1);
+        lyd_print_mem(&str2, tree_out, LYD_XML, 1);
+        if (!str1 || !str2) {
+            assert(str1 == str2);
+        } else {
+            assert(!strcmp(str1, str2));
+        }
+        free(str1);
+        free(str2);
+        lyd_free_(tree_out);
+        ly_in_free(in, 0);
+        ly_out_free(out, NULL, 1);
+    }
     lyd_free_(node);
+
 }

@@ -124,6 +124,7 @@ set(libsrc
     src/tree_data_common.c
     src/tree_data_hash.c
     src/tree_data_new.c
+    src/tree_data_serde.c
     src/parser_xml.c
     src/parser_json.c
     src/parser_lyb.c

@@ -1381,6 +1381,9 @@ lyxml_value_compare(const struct ly_ctx *ctx1, const char *value1, void *val_pre
         if (val_prefix_data2) {
             mod2 = ly_resolve_prefix(ctx2, value2_iter, value2_len, LY_VALUE_XML, val_prefix_data2);
         }
+        if (!mod1 && !mod2) {
+            continue;
+        }
         if (!mod1 || !mod2) {
             /* not a prefix or maps to different namespaces */
             ret = LY_ENOT;

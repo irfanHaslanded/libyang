@@ -1309,7 +1309,7 @@ utest_setup(void **state)
     char *cur_tz;
 
     /* setup the logger */
-    ly_log_options(/*LY_LOLOG |*/ LY_LOSTORE);
+    ly_log_options(LY_LOLOG | LY_LOSTORE);
 
     current_utest_context = calloc(1, sizeof *current_utest_context);
     assert_non_null(current_utest_context);

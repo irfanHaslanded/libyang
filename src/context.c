@@ -312,6 +312,10 @@ ly_ctx_new(const char *search_dir, uint16_t options, struct ly_ctx **new_ctx)
     ctx = calloc(1, sizeof *ctx);
     LY_CHECK_ERR_GOTO(!ctx, LOGMEM(NULL); rc = LY_EMEM, cleanup);
 
+    /* assign a starting next_schema_id from the experimental range */
+    ctx->first_schema_id = 70001;
+    ATOMIC_STORE_RELAXED(ctx->next_schema_id, ctx->first_schema_id);
+
     /* dictionary */
     lydict_init(&ctx->dict);
 
@@ -388,9 +392,6 @@ ly_ctx_new(const char *search_dir, uint16_t options, struct ly_ctx **new_ctx)
         LY_CHECK_GOTO(rc = ly_ctx_compile(ctx), cleanup);
         ctx->flags &= ~LY_CTX_EXPLICIT_COMPILE;
     }
-
-    /* assign a starting next_schema_id from the experimental range */
-    ATOMIC_STORE_RELAXED(ctx->next_schema_id, 70001);
 
 cleanup:
     ly_in_free(in, 0);
@@ -1427,8 +1428,19 @@ ly_ctx_destroy(struct ly_ctx *ctx)
     ly_set_erase(&ctx->plugins_types, NULL);
     ly_set_erase(&ctx->plugins_extensions, NULL);
 
+    /* free schema_nodes list */
+    ly_set_erase(&ctx->schema_nodes, NULL);
     /* shared plugins - will be removed only if this is the last context */
     lyplg_clean();
 
     free(ctx);
+}
+
+LIBYANG_API_DEF const struct lysc_node *
+ly_ctx_get_schema_from_id(const struct ly_ctx *ctx, uint32_t schema_id)
+{
+    assert(ctx && (schema_id < ctx->first_schema_id + ctx->schema_nodes.count));
+    assert(ctx->schema_nodes.snodes[schema_id - ctx->first_schema_id]->schema_id = schema_id);
+
+    return ctx->schema_nodes.snodes[schema_id - ctx->first_schema_id];
 }
