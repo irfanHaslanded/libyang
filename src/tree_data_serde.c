@@ -622,3 +622,7 @@ lyd_parse_flattened(const struct ly_ctx *ctx, struct ly_in *in, struct lyd_node 
 
     return LY_SUCCESS;
 }
+
+// TODO FIXME
+//
+// somehow know the ly ctx matches the printer and parser
