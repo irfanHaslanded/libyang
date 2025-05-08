@@ -178,7 +178,6 @@ lyd_flatten_meta(struct lyd_meta *meta, lyd_flat_id_t parent_id, int siblings, s
         flat_tree->meta = tmp;
     }
     flat_tree->last_meta = tmp;
-    fprintf(stderr, "%s id:%u parent:%u meta:%s=%s\n", __func__, tmp->id, tmp->parent_id, tmp->meta_name, tmp->value);
     while (siblings && (meta = meta->next)) {
         lyd_flatten_meta(meta, parent_id, 0, flat_tree);
         /* if a new meta was assigned, make it our next */
@@ -358,7 +357,7 @@ lyd_flatten_tree(struct lyd_node *node, lyd_flat_id_t parent_id, int siblings, s
 }
 
 LY_ERR
-lyd_print_flattened(struct lyd_node *node, struct ly_out *out)
+flat_print_data(struct ly_out *out, const struct lyd_node *node, uint32_t options)
 {
     int ret = LY_SUCCESS;
     struct lyd_tree_flat_printer flat_tree = {0};
@@ -366,12 +365,7 @@ lyd_print_flattened(struct lyd_node *node, struct ly_out *out)
     struct lyd_flat_meta_printer *meta, *meta_next;
     struct lyd_flat_value_printer *value, *value_next;
 
-    fprintf(stderr, "%s start\n", __func__);
-    lyd_print_fd(2, node, 1, 5);
-    LY_CHECK_RET(lyd_flatten_tree(node, 0, 1, &flat_tree));
-
-    fprintf(stderr, "%s node_count:%u meta_count:%u val_count:%u\n", __func__,
-            flat_tree.node_count, flat_tree.meta_count, flat_tree.val_count);
+    LY_CHECK_RET(lyd_flatten_tree(node, 0, options & LYD_PRINT_WITHSIBLINGS, &flat_tree));
 
     LY_CHECK_GOTO(ly_write_(out, (const char *)&flat_tree.node_count, sizeof flat_tree.node_count), cleanup);
     LY_CHECK_GOTO(ly_write_(out, (const char *)&flat_tree.meta_count, sizeof flat_tree.meta_count), cleanup);
@@ -379,8 +373,6 @@ lyd_print_flattened(struct lyd_node *node, struct ly_out *out)
 
     for (tmp = flat_tree.nodes; tmp; tmp = tmp->next) {
         LY_CHECK_GOTO(ly_write_(out, (const char *)tmp, sizeof (struct lyd_flat_node)), cleanup);
-        fprintf(stderr, "flat_node id:%u schema_id:%u parent_id:%u child_id:%u meta_id:%u next_id:%u value_id:%u\n",
-                tmp->id, tmp->schema_id, tmp->parent_id, tmp->child_id, tmp->meta_id, tmp->next_id, tmp->value_id);
     }
 
     for (meta = flat_tree.meta; meta; meta = meta->next) {
@@ -388,16 +380,11 @@ lyd_print_flattened(struct lyd_node *node, struct ly_out *out)
         LY_CHECK_GOTO(ly_write_(out, meta->mod_name, meta->mod_name_len), cleanup);
         LY_CHECK_GOTO(ly_write_(out, meta->meta_name, meta->meta_name_len), cleanup);
         LY_CHECK_GOTO(ly_write_(out, meta->value, meta->value_len), cleanup);
-        fprintf(stderr, "meta id:%u parent_id:%u next_id:%u mod_name:%s meta_name:%s value:%s\n",
-                meta->id, meta->parent_id, meta->next_id, meta->mod_name, meta->meta_name, meta->value);
     }
 
     for (value = flat_tree.values; value; value = value->next) {
         LY_CHECK_GOTO(ly_write_(out, (const char *)value, sizeof (struct lyd_flat_value) - sizeof (char *)), cleanup);
         LY_CHECK_GOTO(ly_write_(out, value->value, value->value_len), cleanup);
-
-        fprintf(stderr, "value id:%u type:%u hash:%u value_len:%u value:%s\n",
-                value->id, value->type, value->hash, value->value_len, value->value);
     }
     ly_print_flush(out);
 
@@ -434,7 +421,6 @@ lyd_parse_flat_single(const struct ly_ctx *ctx, struct lyd_flat_node *flat_node,
         return LY_SUCCESS;
     }
 
-    fprintf(stderr, "%s schema_id %u value %s\n", __func__, flat_node->schema_id, value ? value->value : "null");
     if (!flat_node->schema_id) {
         ret = lyd_parse_data_mem(ctx, value->value, LYD_FLAT_OPAQ_FORMAT, LYD_PARSE_OPAQ | LYD_PARSE_STORE_ONLY, 0, out);
         assert(!ret);
@@ -475,7 +461,6 @@ lyd_parse_flat_single(const struct ly_ctx *ctx, struct lyd_flat_node *flat_node,
     if (*out) {
         (*out)->flags = flat_node->flags;
         (*out)->hash = flat_node->hash;
-        fprintf(stderr, "%s %s mod %s\n", __func__, (*out)->schema->name, (*out)->schema->module->name);
     }
 
     return ret;

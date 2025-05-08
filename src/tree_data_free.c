@@ -314,7 +314,7 @@ lyd_free_all(struct lyd_node *node)
 
     /* get top-level node */
     for ( ; node->parent; node = lyd_parent(node)) {}
-
+#if 0
     if (node->schema) {
         assert(!ly_out_new_memory(&buf, 0, &out));
         /* TODO FIXME remove later irfan flatten print and parse here */
@@ -344,6 +344,7 @@ lyd_free_all(struct lyd_node *node)
         ly_in_free(in, 0);
         ly_out_free(out, NULL, 1);
     }
+#endif
     lyd_free_(node);
 
 }
