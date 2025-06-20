@@ -657,7 +657,8 @@ lyd_diff_userord_attrs(const struct lyd_node *first, const struct lyd_node *seco
     LY_ERR rc = LY_SUCCESS;
     const struct lysc_node *schema;
     size_t buflen, bufused;
-    uint32_t first_pos, second_pos, comp_opts;
+    uint32_t first_pos, second_pos;
+    int is_dup_inst;
 
     assert(first || second);
 
@@ -683,6 +684,7 @@ lyd_diff_userord_attrs(const struct lyd_node *first, const struct lyd_node *seco
     } else {
         first_pos = 0;
     }
+    is_dup_inst = lysc_is_dup_inst_list(schema);
 
     /* prepare position of the next instance */
     second_pos = userord_item->pos++;
@@ -693,8 +695,7 @@ lyd_diff_userord_attrs(const struct lyd_node *first, const struct lyd_node *seco
     } else if (!first) {
         *op = LYD_DIFF_OP_CREATE;
     } else {
-        comp_opts = lysc_is_dup_inst_list(second->schema) ? LYD_COMPARE_FULL_RECURSION : 0;
-        if (lyd_compare_single(second, userord_item->inst[second_pos], comp_opts)) {
+        if (lyd_compare_single(second, userord_item->inst[second_pos], is_dup_inst ? LYD_COMPARE_FULL_RECURSION : 0)) {
             /* in first, there is a different instance on the second position, we are going to move 'first' node */
             *op = LYD_DIFF_OP_REPLACE;
         } else if ((options & LYD_DIFF_DEFAULTS) && ((first->flags & LYD_DEFAULT) != (second->flags & LYD_DEFAULT))) {
@@ -702,6 +703,9 @@ lyd_diff_userord_attrs(const struct lyd_node *first, const struct lyd_node *seco
             *op = LYD_DIFF_OP_NONE;
         } else if ((options & LYD_DIFF_META) && lyd_diff_node_metadata_check(first, second)) {
             /* metadata changes */
+            *op = LYD_DIFF_OP_NONE;
+        } else if (is_dup_inst && (options & LYD_DIFF_DUPINST_FULL)) {
+            /* dup inst list and unchanged were requested. */
             *op = LYD_DIFF_OP_NONE;
         } else {
             /* no changes */
@@ -723,7 +727,7 @@ lyd_diff_userord_attrs(const struct lyd_node *first, const struct lyd_node *seco
     }
 
     /* value */
-    if ((schema->nodetype == LYS_LEAFLIST) && !lysc_is_dup_inst_list(schema) &&
+    if ((schema->nodetype == LYS_LEAFLIST) && !is_dup_inst &&
             ((*op == LYD_DIFF_OP_REPLACE) || (*op == LYD_DIFF_OP_CREATE))) {
         if (second_pos) {
             *value = strdup(lyd_get_value(userord_item->inst[second_pos - 1]));
@@ -735,7 +739,7 @@ lyd_diff_userord_attrs(const struct lyd_node *first, const struct lyd_node *seco
     }
 
     /* orig-value */
-    if ((schema->nodetype == LYS_LEAFLIST) && !lysc_is_dup_inst_list(schema) &&
+    if ((schema->nodetype == LYS_LEAFLIST) && !is_dup_inst &&
             ((*op == LYD_DIFF_OP_REPLACE) || (*op == LYD_DIFF_OP_DELETE))) {
         if (first_pos) {
             *orig_value = strdup(lyd_get_value(userord_item->inst[first_pos - 1]));
@@ -747,7 +751,7 @@ lyd_diff_userord_attrs(const struct lyd_node *first, const struct lyd_node *seco
     }
 
     /* key */
-    if ((schema->nodetype == LYS_LIST) && !lysc_is_dup_inst_list(schema) &&
+    if ((schema->nodetype == LYS_LIST) && !is_dup_inst &&
             ((*op == LYD_DIFF_OP_REPLACE) || (*op == LYD_DIFF_OP_CREATE))) {
         if (second_pos) {
             buflen = bufused = 0;
@@ -759,7 +763,7 @@ lyd_diff_userord_attrs(const struct lyd_node *first, const struct lyd_node *seco
     }
 
     /* orig-key */
-    if ((schema->nodetype == LYS_LIST) && !lysc_is_dup_inst_list(schema) &&
+    if ((schema->nodetype == LYS_LIST) && !is_dup_inst &&
             ((*op == LYD_DIFF_OP_REPLACE) || (*op == LYD_DIFF_OP_DELETE))) {
         if (first_pos) {
             buflen = bufused = 0;
@@ -771,7 +775,7 @@ lyd_diff_userord_attrs(const struct lyd_node *first, const struct lyd_node *seco
     }
 
     /* position */
-    if (lysc_is_dup_inst_list(schema) && ((*op == LYD_DIFF_OP_REPLACE) || (*op == LYD_DIFF_OP_CREATE))) {
+    if (is_dup_inst && ((*op == LYD_DIFF_OP_REPLACE) || (*op == LYD_DIFF_OP_CREATE))) {
         if (second_pos) {
             if (asprintf(position, "%" PRIu32, second_pos) == -1) {
                 LOGMEM(schema->module->ctx);
@@ -785,7 +789,7 @@ lyd_diff_userord_attrs(const struct lyd_node *first, const struct lyd_node *seco
     }
 
     /* orig-position */
-    if (lysc_is_dup_inst_list(schema) && ((*op == LYD_DIFF_OP_REPLACE) || (*op == LYD_DIFF_OP_DELETE))) {
+    if (is_dup_inst && ((*op == LYD_DIFF_OP_REPLACE) || (*op == LYD_DIFF_OP_DELETE))) {
         if (first_pos) {
             if (asprintf(orig_position, "%" PRIu32, first_pos) == -1) {
                 LOGMEM(schema->module->ctx);

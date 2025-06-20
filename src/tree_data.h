@@ -2173,6 +2173,8 @@ LIBYANG_API_DECL LY_ERR lyd_merge_module(struct lyd_node **target, const struct 
 #define LYD_DIFF_META       0x02 /**< All metadata are compared and the full difference reported in the diff always in
                                       the form of 'yang:meta-\<operation\>' metadata. Also, equal nodes with only changes
                                       in their metadata will be present in the diff with the 'none' operation. */
+#define LYD_DIFF_DUPINST_FULL 0x04 /**< For keyless lists and operational leaf-lists which allow duplicate instances,
+                                        include equal nodes with the 'none' operation. */
 
 /** @} diffoptions */
 
