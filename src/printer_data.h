@@ -97,6 +97,11 @@ struct ly_out;
                                                       are not explicitly present in the original data tree despite their
                                                       value is equal to their default value.  There is the same limitation regarding
                                                       the presence of ietf-netconf-with-defaults module in libyang context. */
+#define LYD_PRINT_FRAGMENT 0x100 /**< Print the data tree as a fragment. For
+                                      JSON this means that apparent
+                                      top-level nodes do not have their
+                                      namespace added. */
+#define LYD_PRINT_BARETOPLEAF 0x200 /**< Print top-level leaf node as a bare value (JSON-only). */
 /**
  * @}
  */
@@ -133,6 +138,12 @@ LIBYANG_API_DECL LY_ERR lyd_print_tree(struct ly_out *out, const struct lyd_node
  * @return LY_ERR value.
  */
 LIBYANG_API_DECL LY_ERR lyd_print_mem(char **strp, const struct lyd_node *root, LYD_FORMAT format, uint32_t options);
+
+/**
+ * Same as lyd_print_mem but also return the length of buffer written
+ */
+LIBYANG_API_DEF LY_ERR
+lyd_print_mem_len(char **strp, const struct lyd_node *root, LYD_FORMAT format, uint32_t options, size_t *len);
 
 /**
  * @brief Print data tree in the specified format.

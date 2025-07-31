@@ -350,7 +350,7 @@ lyplg_type_free_ipv6_prefix(const struct ly_ctx *ctx, struct lyd_value *value)
 const struct lyplg_type_record plugins_ipv6_prefix[] = {
     {
         .module = "ietf-inet-types",
-        .revision = "2013-07-15",
+        .revision = "2022-11-07",
         .name = "ipv6-prefix",
 
         .plugin.id = "libyang 2 - ipv6-prefix, version 1",

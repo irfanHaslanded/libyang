@@ -56,6 +56,24 @@
 static LY_ERR lyd_compare_siblings_(const struct lyd_node *node1, const struct lyd_node *node2, uint32_t options,
         ly_bool parental_schemas_checked);
 
+LIBYANG_API_DEF struct lyd_node *
+lyd_get_parent(const struct lyd_node *node)
+{
+    return lyd_parent(node);
+}
+
+LIBYANG_API_DEF struct lyd_node *
+lyd_get_child(const struct lyd_node *node)
+{
+    return lyd_child(node);
+}
+
+LIBYANG_API_DEF const char *
+lyd_node_get_value(const struct lyd_node *node)
+{
+    return lyd_get_value(node);
+}
+
 static LYD_FORMAT
 lyd_parse_get_format(const struct ly_in *in, LYD_FORMAT format)
 {

@@ -161,7 +161,7 @@ test_data_basic_plugins_only_xml(void **state)
     TEST_ERROR_XML("a", "l", "192.168.0.333");
     CHECK_LOG_CTX("Unsatisfied pattern - \"192.168.0.333\" does not conform to \""
             "(([0-9]|[1-9][0-9]|1[0-9][0-9]|2[0-4][0-9]|25[0-5])\\.){3}([0-9]|[1-9]"
-            "[0-9]|1[0-9][0-9]|2[0-4][0-9]|25[0-5])(%[\\p{N}\\p{L}]+)?\".", "/a:l", 1);
+            "[0-9]|1[0-9][0-9]|2[0-4][0-9]|25[0-5])(%.+)?\".", "/a:l", 1);
     TEST_SUCCESS_PARSE_STORE_ONLY_XML("a", "l", "192.168.0.333", STRING, "192.168.0.333");
 }
 
@@ -327,10 +327,10 @@ int
 main(void)
 {
     const struct CMUnitTest tests[] = {
+        UTEST(test_data_basic_plugins_only_xml),
         UTEST(test_data_xml),
         UTEST(test_data_lyb),
         UTEST(test_plugin_sort),
-        UTEST(test_data_basic_plugins_only_xml),
     };
 
     return cmocka_run_group_tests(tests, NULL, NULL);

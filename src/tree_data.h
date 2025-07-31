@@ -1029,6 +1029,9 @@ struct lyd_leafref_links_rec {
                                                     is filled only for leafrefs */
 };
 
+LIBYANG_API_DECL struct lyd_node *
+lyd_get_parent(const struct lyd_node *node);
+
 /**
  * @brief Get the generic parent pointer of a data node.
  *
@@ -1041,6 +1044,9 @@ lyd_parent(const struct lyd_node *node)
 {
     return (node && node->parent) ? &node->parent->node : NULL;
 }
+
+LIBYANG_API_DECL struct lyd_node *
+lyd_get_child(const struct lyd_node *node);
 
 /**
  * @brief Get the child pointer of a generic data node.
@@ -1157,6 +1163,9 @@ LIBYANG_API_DECL LY_ERR lyd_parse_opaq_error(const struct lyd_node *node);
  * @return Canonical value.
  */
 LIBYANG_API_DECL const char *lyd_value_get_canonical(const struct ly_ctx *ctx, const struct lyd_value *value);
+
+LIBYANG_API_DECL const char *
+lyd_node_get_value(const struct lyd_node *node);
 
 /**
  * @brief Get the (canonical) value of a data node.
@@ -1292,6 +1301,9 @@ LIBYANG_API_DECL LY_ERR lyd_new_ext_inner(const struct lysc_ext_instance *ext, c
                                           is created. */
 #define LYD_NEW_PATH_WITH_OPAQ 0x80  /**< Consider opaque nodes normally when searching for existing nodes. */
 #define LYD_NEW_ANY_USE_VALUE 0x100  /**< Whether to use dynamic @p value or make a copy. */
+
+#define LYD_NEW_PATH_IGN_INVAL 0x200 /**< Ignore the provided value if invalid.
+                                         This is useful when lyd_parse_ will be called later to properly fix up the node */
 
 /** @} newvaloptions */
 

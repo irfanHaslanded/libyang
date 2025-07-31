@@ -235,8 +235,8 @@ help(int shortout)
 static void
 libyang_verbclb(LY_LOG_LEVEL level, const char *msg, const char *data_path, const char *schema_path, uint64_t line)
 {
-    const char *levstr;
-    char *full_msg = NULL, *aux;
+    char *levstr;
+    char line_str[40] = "";
 
     switch (level) {
     case LY_LLERR:
@@ -253,33 +253,18 @@ libyang_verbclb(LY_LOG_LEVEL level, const char *msg, const char *data_path, cons
         break;
     }
 
-    if (asprintf(&full_msg, "libyang %s %s", levstr, msg) == -1) {
-        goto error;
-    }
-
-    if (data_path || schema_path) {
-        if (asprintf(&aux, "%s (%s)", full_msg, data_path ? data_path : schema_path) == -1) {
-            goto error;
-        }
-        free(full_msg);
-        full_msg = aux;
-    }
-
     if (line) {
-        if (asprintf(&aux, "%s (line %" PRIu64 ")", full_msg, line) == -1) {
-            goto error;
-        }
-        free(full_msg);
-        full_msg = aux;
+        snprintf(line_str, sizeof(line_str), ", line number %" PRIu64, line);
     }
-
-    fprintf(stderr, "%s\n", full_msg);
-    free(full_msg);
-    return;
-
-error:
-    free(full_msg);
-    fprintf(stderr, "libyang %s Memory allocation failed.\n", levstr);
+    if (data_path) {
+        fprintf(stderr, "libyang %s %s (Data location \"%s\"%s.)\n", levstr, msg, data_path, line_str);
+    } else if (schema_path) {
+        fprintf(stderr, "libyang %s %s (Schema location \"%s\"%s.)\n", levstr, msg, schema_path, line_str);
+    } else if (line) {
+        fprintf(stderr, "libyang %s %s (line %" PRIu64 ")\n", levstr, msg, line);
+    } else {
+        fprintf(stderr, "libyang %s %s\n", levstr, msg);
+    }
 }
 
 /**

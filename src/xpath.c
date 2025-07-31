@@ -4545,7 +4545,7 @@ xpath_local_name(struct lyxp_set **args, uint32_t arg_count, struct lyxp_set *se
         }
 
         /* we need the set sorted, it affects the result */
-        assert(!set_sort(args[0]));
+        expensive_assert(!set_sort(args[0]));
 
         item = &args[0]->val.nodes[0];
     } else {
@@ -4558,7 +4558,7 @@ xpath_local_name(struct lyxp_set **args, uint32_t arg_count, struct lyxp_set *se
         }
 
         /* we need the set sorted, it affects the result */
-        assert(!set_sort(set));
+        expensive_assert(!set_sort(set));
 
         item = &set->val.nodes[0];
     }
@@ -4615,7 +4615,7 @@ xpath_name(struct lyxp_set **args, uint32_t arg_count, struct lyxp_set *set, uin
         }
 
         /* we need the set sorted, it affects the result */
-        assert(!set_sort(args[0]));
+        expensive_assert(!set_sort(args[0]));
 
         item = &args[0]->val.nodes[0];
     } else {
@@ -4628,7 +4628,7 @@ xpath_name(struct lyxp_set **args, uint32_t arg_count, struct lyxp_set *set, uin
         }
 
         /* we need the set sorted, it affects the result */
-        assert(!set_sort(set));
+        expensive_assert(!set_sort(set));
 
         item = &set->val.nodes[0];
     }
@@ -4699,7 +4699,7 @@ xpath_namespace_uri(struct lyxp_set **args, uint32_t arg_count, struct lyxp_set 
         }
 
         /* we need the set sorted, it affects the result */
-        assert(!set_sort(args[0]));
+        expensive_assert(!set_sort(args[0]));
 
         item = &args[0]->val.nodes[0];
     } else {
@@ -4712,7 +4712,7 @@ xpath_namespace_uri(struct lyxp_set **args, uint32_t arg_count, struct lyxp_set 
         }
 
         /* we need the set sorted, it affects the result */
-        assert(!set_sort(set));
+        expensive_assert(!set_sort(set));
 
         item = &set->val.nodes[0];
     }
@@ -6194,7 +6194,7 @@ moveto_node(struct lyxp_set *set, const struct lys_module *moveto_mod, const cha
     if (set->non_child_axis) {
         set_sort(set);
     } else {
-        assert(!set_sort(set));
+        expensive_assert(!set_sort(set));
     }
 
 cleanup:
@@ -6294,7 +6294,7 @@ moveto_node_hash_child(struct lyxp_set *set, const struct lysc_node *scnode, con
     lyxp_set_free_content(set);
     *set = result;
     result.type = LYXP_SET_NUMBER;
-    assert(!set_sort(set));
+    expensive_assert(!set_sort(set));
 
 cleanup:
     lyxp_set_free_content(&result);
@@ -6919,7 +6919,7 @@ skip_children:
     ret_set.ctx_size = set->ctx_size;
     lyxp_set_free_content(set);
     memcpy(set, &ret_set, sizeof *set);
-    assert(!set_sort(set));
+    expensive_assert(!set_sort(set));
 
     return LY_SUCCESS;
 }
@@ -7158,14 +7158,14 @@ moveto_union(struct lyxp_set *set1, struct lyxp_set *set2)
     }
 
     /* we assume sets are sorted */
-    assert(!set_sort(set1) && !set_sort(set2));
+    expensive_assert(!set_sort(set1) && !set_sort(set2));
 
     /* sort, remove duplicates */
     rc = set_sorted_merge(set1, set2);
     LY_CHECK_RET(rc);
 
     /* final set must be sorted */
-    assert(!set_sort(set1));
+    expensive_assert(!set_sort(set1));
 
     return LY_SUCCESS;
 }
@@ -7529,7 +7529,7 @@ only_parse:
         LY_CHECK_RET(rc);
     } else if (set->type == LYXP_SET_NODE_SET) {
         /* we (possibly) need the set sorted, it can affect the result (if the predicate result is a number) */
-        assert(!set_sort(set));
+        expensive_assert(!set_sort(set));
 
         /* empty set, nothing to evaluate */
         if (!set->used) {
@@ -9944,7 +9944,7 @@ lyxp_set_cast(struct lyxp_set *set, enum lyxp_set_type target)
             break;
         case LYXP_SET_NODE_SET:
             /* we need the set sorted, it affects the result */
-            assert(!set_sort(set));
+            expensive_assert(!set_sort(set));
 
             rc = cast_node_set_to_string(set, &str);
             LY_CHECK_RET(rc);

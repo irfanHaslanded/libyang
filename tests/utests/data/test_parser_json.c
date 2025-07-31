@@ -36,6 +36,7 @@ setup(void **state)
             "leaf foo { type string;}"
             "container c {"
             "    leaf x {type string;}"
+            "    leaf-list y { type uint8; }"
             "    action act { input { leaf al {type string;} } output { leaf al {type uint8;} } }"
             "    notification n1 { leaf nl {type string;} }"
             "}"
@@ -43,6 +44,7 @@ setup(void **state)
             "anydata any {config false;}"
             "anyxml axml;"
             "leaf-list ll1 { type uint8; }"
+            "leaf-list ll2 { type string; }"
             "leaf foo2 { type string; default \"default-val\"; }"
             "leaf foo3 { type uint32; }"
             "leaf foo4 { type uint64; }"
@@ -68,6 +70,58 @@ setup(void **state)
 
 #define CHECK_LYD_STRING(IN_MODEL, PRINT_OPTION, TEXT) \
     CHECK_LYD_STRING_PARAM(IN_MODEL, TEXT, LYD_JSON, PRINT_OPTION)
+
+static void
+test_baretop_leaf(void **state)
+{
+    struct lyd_node *root;
+    struct lyd_node *node;
+    struct lyd_node *tree;
+    struct lyd_node_term *leaf;
+    struct ly_in *in;
+    int ret;
+    int i;
+
+    char *xpath[] = {"/a:foo", "/a:ll2" , "/a:ll2", "/a:ll2", "/a:ll1"};
+    char *data[] = {"\"foo value\"", "\"1\"", "\"1\", \"2\"", "[\"abc\", \"def\", \"ghi\"]", "[1, 2, 3]"};
+    char *exp_value[] = {"foo value", "1", "1", "abc", "1"};
+    char *exp_str[] = {"\"foo value\"", "{[\"1\"]}", "{[\"1\"]}", "{[\"abc\"]}", "{[1]}"};
+    char *exp_str_sib[] = {
+        "{\"a:foo\":\"foo value\"}",
+        "{\"a:ll2\":[\"1\"]}",
+        "{\"a:ll2\":[\"1\"]}",
+        "{\"a:ll2\":[\"abc\",\"def\",\"ghi\"]}",
+        "{\"a:ll1\":[1,2,3]}",
+    };
+
+    for (i = 0; i < 5; i++) {
+        root = node = tree = NULL;
+        leaf = NULL;
+        ret = lyd_new_path2(NULL, UTEST_LYCTX, xpath[i], data[i], 0, 0,
+                LYD_NEW_PATH_OPAQ | LYD_NEW_PATH_IGN_INVAL, &root, &node);
+        if (ret) {
+            fail_msg("Print err 0x%d; MSG: %s", ret, ly_err_last(UTEST_LYCTX)->msg);
+        }
+
+        if ((ret = ly_in_new_memory(data[i], &in))) {
+            fail_msg("Print err 0x%d; MSG: %s", ret, ly_err_last(UTEST_LYCTX)->msg);
+        }
+
+        if ((ret = lyd_parse_data(UTEST_LYCTX, node, in, LYD_JSON, LYD_PARSE_BARETOPLEAF | LYD_PARSE_ONLY, 0, &tree))) {
+            fail_msg("Print err 0x%d; MSG: %s", ret, ly_err_last(UTEST_LYCTX)->msg);
+        }
+        leaf = (struct lyd_node_term *)node;
+        if (leaf->value.realtype->basetype == LY_TYPE_STRING) {
+            CHECK_LYD_VALUE(leaf->value, STRING, exp_value[i]);
+        } else {
+            CHECK_LYD_VALUE(leaf->value, UINT8, exp_value[i], atoi(exp_value[i]));
+        }
+        CHECK_LYD_STRING(node, LYD_PRINT_SHRINK | LYD_PRINT_BARETOPLEAF, exp_str[i]);
+        CHECK_LYD_STRING(root, LYD_PRINT_SHRINK | LYD_PRINT_WITHSIBLINGS, exp_str_sib[i]);
+        lyd_free_all(root);
+        ly_in_free(in, 0);
+    }
+}
 
 static void
 test_leaf(void **state)
@@ -958,6 +1012,7 @@ int
 main(void)
 {
     const struct CMUnitTest tests[] = {
+        UTEST(test_baretop_leaf, setup),
         UTEST(test_leaf, setup),
         UTEST(test_leaflist, setup),
         UTEST(test_anydata, setup),

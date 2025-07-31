@@ -136,9 +136,10 @@ struct ly_in;
  * - implicit nodes (NP containers and default values) are added.
  * @{
  */
-/* note: keep the lower 16bits free for use by LYD_VALIDATE_ flags. They are not supposed to be combined together,
- * but since they are used (as a separate parameter) together in some functions, we want to keep them in a separated
- * range to be able detect that the caller put wrong flags into the parser/validate options parameter. */
+
+#define LYD_PARSE_BARETOPLEAF 0x1           /**< Fragments for top-level leaf values are expected to be bare and not
+                                                 have a top-level object or node name. */
+
 #define LYD_PARSE_ONLY      0x010000        /**< Data will be only parsed and no data validation will be performed but
                                                  type value restrictions will be checked (unlike ::LYD_PARSE_STORE_ONLY).
                                                  When statements are kept unevaluated, union types may not be fully
@@ -181,7 +182,7 @@ struct ly_in;
                                                        format according to RFC 7951 based on their type. Using this
                                                        option the validation can be softened to accept boolean and
                                                        number type values enclosed in quotes. */
-#define LYD_PARSE_OPTS_MASK 0xFFFF0000      /**< Mask for all the LYD_PARSE_ options. */
+#define LYD_PARSE_OPTS_MASK 0xFFFFFFFF      /**< Mask for all the LYD_PARSE_ options. */
 
 /** @} dataparseroptions */
 

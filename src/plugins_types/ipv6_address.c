@@ -130,7 +130,6 @@ lyplg_type_store_ipv6_address(const struct ly_ctx *ctx, const struct lysc_type *
     const char *value_str = value;
     struct lysc_type_str *type_str = (struct lysc_type_str *)type;
     struct lyd_value_ipv6_address *val;
-    size_t i;
 
     /* init storage */
     memset(storage, 0, sizeof *storage);
@@ -144,13 +143,6 @@ lyplg_type_store_ipv6_address(const struct ly_ctx *ctx, const struct lysc_type *
             ret = ly_err_new(err, LY_EVALID, LYVE_DATA, NULL, NULL, "Invalid LYB ipv6-address value size %zu "
                     "(expected at least 16).", value_len);
             goto cleanup;
-        }
-        for (i = 16; i < value_len; ++i) {
-            if (!isalnum(value_str[i])) {
-                ret = ly_err_new(err, LY_EVALID, LYVE_DATA, NULL, NULL, "Invalid LYB ipv6-address zone character 0x%x.",
-                        value_str[i]);
-                goto cleanup;
-            }
         }
 
         /* store IP address */
@@ -391,7 +383,7 @@ lyplg_type_free_ipv6_address(const struct ly_ctx *ctx, struct lyd_value *value)
 const struct lyplg_type_record plugins_ipv6_address[] = {
     {
         .module = "ietf-inet-types",
-        .revision = "2013-07-15",
+        .revision = "2022-11-07",
         .name = "ipv6-address",
 
         .plugin.id = "libyang 2 - ipv6-address, version 1",

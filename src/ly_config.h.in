@@ -28,6 +28,20 @@
 #  endif
 #endif
 
+#ifdef LYD_CHECK_ALL_ASSERTS
+    /*
+     * While most assertions are not very expensive some such as checking `set_sort` are
+     * This library is not stable enough and there is significant incoming development ongoing.
+     * So, disabling asserts in "Package" builds is not possible.
+     * It can lead to missing bugs during testing and make troubleshooting very difficult.
+     *
+     * Without this flag, skip the performance impacting asserts such as `set_sort` in package builds.
+     * */
+    #define expensive_assert(expr) assert(expr)
+#else
+    #define expensive_assert(expr) (void)0
+#endif
+
 /** size of fixed_mem in lyd_value, minimum is 8 (B) */
 #define LYD_VALUE_FIXED_MEM_SIZE @LYD_VALUE_SIZE@
 

@@ -129,7 +129,6 @@ lyplg_type_store_ipv4_address(const struct ly_ctx *ctx, const struct lysc_type *
     const char *value_str = value;
     struct lysc_type_str *type_str = (struct lysc_type_str *)type;
     struct lyd_value_ipv4_address *val;
-    size_t i;
 
     /* init storage */
     memset(storage, 0, sizeof *storage);
@@ -143,13 +142,6 @@ lyplg_type_store_ipv4_address(const struct ly_ctx *ctx, const struct lysc_type *
             ret = ly_err_new(err, LY_EVALID, LYVE_DATA, NULL, NULL, "Invalid LYB ipv4-address value size %zu "
                     "(expected at least 4).", value_len);
             goto cleanup;
-        }
-        for (i = 4; i < value_len; ++i) {
-            if (!isalnum(value_str[i])) {
-                ret = ly_err_new(err, LY_EVALID, LYVE_DATA, NULL, NULL, "Invalid LYB ipv4-address zone character 0x%x.",
-                        value_str[i]);
-                goto cleanup;
-            }
         }
 
         /* store IP address */
@@ -389,7 +381,7 @@ lyplg_type_free_ipv4_address(const struct ly_ctx *ctx, struct lyd_value *value)
 const struct lyplg_type_record plugins_ipv4_address[] = {
     {
         .module = "ietf-inet-types",
-        .revision = "2013-07-15",
+        .revision = "2022-11-07",
         .name = "ipv4-address",
 
         .plugin.id = "libyang 2 - ipv4-address, version 1",

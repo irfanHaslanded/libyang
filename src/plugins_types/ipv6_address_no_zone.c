@@ -297,7 +297,7 @@ lyplg_type_free_ipv6_address_no_zone(const struct ly_ctx *ctx, struct lyd_value 
 const struct lyplg_type_record plugins_ipv6_address_no_zone[] = {
     {
         .module = "ietf-inet-types",
-        .revision = "2013-07-15",
+        .revision = "2022-11-07",
         .name = "ipv6-address-no-zone",
 
         .plugin.id = "libyang 2 - ipv6-address-no-zone, version 1",

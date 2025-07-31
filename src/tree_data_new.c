@@ -108,6 +108,26 @@ lyd_create_term2(const struct lysc_node *schema, const struct lyd_value *val, st
     return ret;
 }
 
+static LY_ERR
+lyd_create_term_no_value(const struct lysc_node *schema, struct lyd_node **node)
+{
+    struct lyd_node_term *term;
+
+    term = calloc(1, sizeof *term);
+    LY_CHECK_ERR_RET(!term, LOGMEM(schema->module->ctx), LY_EMEM);
+
+    term->schema = schema;
+
+    /* hash is needed for lyd_insert_node for leaf-lists */
+    term->hash = lyht_hash_multi(0, term->schema->module->name, strlen(term->schema->module->name));
+    term->hash = lyht_hash_multi(term->hash, term->schema->name, strlen(term->schema->name));
+
+    term->prev = &term->node;
+
+    *node = &term->node;
+    return LY_SUCCESS;
+}
+
 LY_ERR
 lyd_create_inner(const struct lysc_node *schema, struct lyd_node **node)
 {
@@ -1325,8 +1345,13 @@ lyd_change_term_val(struct lyd_node *term, struct lyd_value *val, ly_bool use_va
     t = (struct lyd_node_term *)term;
     type = ((struct lysc_node_leaf *)term->schema)->type;
 
+    if (!t->value.realtype) {
+        /* no old value*/
+        t->value = *val;
+        val_change = 1;
+    }
     /* compare original and new value */
-    if (type->plugin->compare(LYD_CTX(term), &t->value, val)) {
+    else if (type->plugin->compare(LYD_CTX(term), &t->value, val)) {
         /* since they are different, they cannot both be default */
         assert(!(term->flags & LYD_DEFAULT) || !is_dflt);
 
@@ -1790,6 +1815,11 @@ lyd_new_path_(struct lyd_node *parent, const struct ly_ctx *ctx, const struct ly
             LY_CHECK_GOTO(ret = lyd_create_inner(schema, &node), cleanup);
             break;
         case LYS_LEAFLIST:
+            if ((options & LYD_NEW_PATH_IGN_INVAL)) {
+                LY_CHECK_GOTO(ret = lyd_create_term_no_value(schema, &node), cleanup);
+                break;
+            }
+
             if ((options & LYD_NEW_PATH_OPAQ) &&
                     (!p[path_idx].predicates || (p[path_idx].predicates[0].type != LY_PATH_PREDTYPE_LEAFLIST))) {
                 /* we have not checked this only for dup-inst lists, otherwise it must be opaque */

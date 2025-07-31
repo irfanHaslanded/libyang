@@ -44,7 +44,7 @@ struct lys_module;
  * are implemented internally by libyang:
  * - ietf-yang-metadata@2016-08-05
  * - yang@2020-06-17
- * - ietf-inet-types@2013-07-15
+ * - ietf-inet-types@2022-11-07
  * - ietf-yang-types@2013-07-15
  * - ietf-datastores@2018-02-14
  * - ietf-yang-library@2019-01-04

@@ -49,7 +49,7 @@
 #include "tree_schema_internal.h"
 
 #include "../models/ietf-datastores@2018-02-14.h"
-#include "../models/ietf-inet-types@2013-07-15.h"
+#include "../models/ietf-inet-types@2022-11-07.h"
 #include "../models/ietf-yang-library@2019-01-04.h"
 #include "../models/ietf-yang-metadata@2016-08-05.h"
 #include "../models/ietf-yang-schema-mount@2019-01-14.h"
@@ -67,7 +67,7 @@ static struct internal_modules_s {
 } internal_modules[] = {
     {"ietf-yang-metadata", "2016-08-05", (const char *)ietf_yang_metadata_2016_08_05_yang, 0, LYS_IN_YANG},
     {"yang", "2025-01-29", (const char *)yang_2025_01_29_yang, 1, LYS_IN_YANG},
-    {"ietf-inet-types", "2013-07-15", (const char *)ietf_inet_types_2013_07_15_yang, 0, LYS_IN_YANG},
+    {"ietf-inet-types", "2013-11-07", (const char *)ietf_inet_types_2022_11_07_yang, 0, LYS_IN_YANG},
     {"ietf-yang-types", "2013-07-15", (const char *)ietf_yang_types_2013_07_15_yang, 0, LYS_IN_YANG},
     {"ietf-yang-schema-mount", "2019-01-14", (const char *)ietf_yang_schema_mount_2019_01_14_yang, 1, LYS_IN_YANG},
     {"ietf-yang-structure-ext", "2020-06-17", (const char *)ietf_yang_structure_ext_2020_06_17_yang, 0, LYS_IN_YANG},

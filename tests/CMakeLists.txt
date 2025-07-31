@@ -34,10 +34,17 @@ function(ly_add_utest)
         target_link_libraries(${TEST_NAME} ${XXHASH_LIBRARY})
     endif()
     add_test(NAME ${TEST_NAME} COMMAND ${TEST_NAME})
-    set_property(TEST ${TEST_NAME} APPEND PROPERTY ENVIRONMENT "MALLOC_CHECK_=3")
+    set_property(TEST ${TEST_NAME} APPEND PROPERTY ENVIRONMENT
+            "MALLOC_CHECK_=3"
+            "LD_LIBRARY_PATH=${CMAKE_BINARY_DIR}"
+        )
 
     if(ENABLE_VALGRIND_TESTS)
         add_test(${TEST_NAME}_valgrind valgrind --leak-check=full --show-leak-kinds=all --suppressions=${PROJECT_SOURCE_DIR}/tests/ld.supp --error-exitcode=1 ${CMAKE_BINARY_DIR}/tests/${TEST_NAME})
+        set_property(TEST ${TEST_NAME}_valgrind APPEND PROPERTY ENVIRONMENT
+                "MALLOC_CHECK_=3"
+                "LD_LIBRARY_PATH=${CMAKE_BINARY_DIR}"
+            )
     endif()
 endfunction()
 
