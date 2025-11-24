@@ -2938,9 +2938,11 @@ lyd_path(const struct lyd_node *node, LYD_PATH_TYPE pathtype, char *buffer, size
     size_t bufused = 0, len;
     const struct lyd_node *iter, *parent;
     const struct lys_module *mod, *prev_mod;
+    struct lyd_path_elem *elems = NULL;
     LY_ERR rc = LY_SUCCESS;
 
     LY_CHECK_ARG_RET(NULL, node, NULL);
+
     if (buffer) {
         LY_CHECK_ARG_RET(LYD_CTX(node), buflen > 1, NULL);
         is_static = 1;
@@ -3014,6 +3016,10 @@ iter_print:
         }
         break;
     }
+    fprintf(stderr, "%s %s\n", __func__, buffer);
+    lyd_get_path_elements(node, &elems);
+    lyd_print_path_elements(elems);
+    lyd_free_path_elements(&elems);
 
     return buffer;
 }
@@ -3941,4 +3947,108 @@ lyd_unlink_leafref_node(const struct lyd_node_term *node, const struct lyd_node_
     }
 
     return LY_SUCCESS;
+}
+
+LIBYANG_API_DEF void
+lyd_free_path_elements(struct lyd_path_elem **elems)
+{
+    size_t i;
+    struct lyd_path_elem *arr;
+    if (!elems) {
+        return;
+    }
+    arr = *elems;
+
+    LY_ARRAY_FOR(arr, i) {
+        LY_ARRAY_FREE(arr[i].predicates);
+    }
+    LY_ARRAY_FREE(arr);
+
+    *elems = NULL;
+}
+
+static LY_ERR
+lyd_get_path_predicates(const struct lyd_node *node, struct lyd_path_pred **predicates)
+{
+    const struct lyd_node *child;
+    struct lyd_path_pred *new_pred;
+
+    if (!node->schema || node->schema->nodetype != LYS_LIST) {
+        return LY_SUCCESS;
+    }
+
+    for (child = lyd_child(node); child; child = child->next) {
+        if (child->schema &&
+           (child->schema->nodetype == LYS_LEAF) &&
+           (child->schema->flags & LYS_KEY)) {
+            LY_ARRAY_NEW_RET(LYD_CTX(node), *predicates, new_pred, LY_EMEM);
+            new_pred->key = child->schema->name;
+            new_pred->value = lyd_get_value(child);
+        }
+    }
+    return LY_SUCCESS;
+}
+
+LIBYANG_API_DEF LY_ERR
+lyd_get_path_elements(const struct lyd_node *node, struct lyd_path_elem **elems)
+{
+    const struct lyd_node *iter;
+    const struct lys_module *mod;
+    struct lyd_path_elem *curr, *next = NULL;
+    size_t depth = 0;
+    size_t i, j;
+    LY_ERR rc;
+
+    if (!node || !elems) {
+        return LY_EINVAL;
+    }
+
+    *elems = NULL;
+    for (iter = node; iter; iter = lyd_parent(iter)) {
+        depth++;
+    }
+    assert(depth);
+    i = depth;
+    LY_ARRAY_CREATE_GOTO(LYD_CTX(node), *elems, depth, rc, cleanup);
+
+    for (iter = node; iter; iter = lyd_parent(iter)) {
+        curr = &((*elems)[--i]);
+        memset(curr, 0, sizeof(struct lyd_path_elem));
+        curr->name = LYD_NAME(iter);
+
+        mod = lyd_node_module(iter);
+        curr->module_name = mod ? mod->name : NULL;
+        /* remove the next element's module name if it's the same as ours */
+        if (next && (next->module_name == mod->name)) {
+            next->module_name = NULL;
+        }
+
+        LY_CHECK_GOTO((rc = lyd_get_path_predicates(iter, &curr->predicates)), cleanup);
+        LY_ARRAY_INCREMENT(*elems);
+        next = curr;
+    }
+    assert(LY_ARRAY_COUNT(*elems) == depth);
+
+    return LY_SUCCESS;
+cleanup:
+    lyd_free_path_elements(elems);
+
+    return rc;
+}
+
+LIBYANG_API_DEF LY_ERR
+lyd_print_path_elements(struct lyd_path_elem *elems)
+{
+    LY_ARRAY_FOR(elems, i) {
+        curr = &elems[i];
+        if (curr->module_name) {
+            fprintf(stderr, "/%s:%s",curr->module_name, curr->name);
+        } else {
+            fprintf(stderr, "/%s", curr->name);
+        }
+        LY_ARRAY_FOR(curr->predicates, j) {
+            fprintf(stderr, "[%s='%s']", curr->predicates[j].key, curr->predicates[j].value);
+        }
+    }
+    fprintf(stderr, "\n");
 }

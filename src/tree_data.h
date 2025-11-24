@@ -2372,6 +2372,23 @@ typedef enum {
  */
 LIBYANG_API_DECL char *lyd_path(const struct lyd_node *node, LYD_PATH_TYPE pathtype, char *buffer, size_t buflen);
 
+struct lyd_path_pred {
+    const char *key;
+    const char *value;
+};
+
+struct lyd_path_elem {
+    const char *name;
+    const char *module_name; /* if module name must be printed as well*/
+    struct lyd_path_pred *predicates;
+};
+
+LIBYANG_API_DECL LY_ERR lyd_get_path_elements(const struct lyd_node *node, struct lyd_path_elem **elems);
+
+LIBYANG_API_DECL void lyd_free_path_elements(struct lyd_path_elem **elems);
+
+LIBYANG_API_DECL LY_ERR lyd_print_path_elements(struct lyd_path_elem *elems);
+
 /**
  * @brief Find a specific metadata.
  *
