@@ -108,6 +108,14 @@ lydjson_parse_name(const char *value, size_t value_len, const char **name_p, siz
     size_t name_len, prefix_len = 0;
     ly_bool is_meta = 0;
 
+    /* if a path was printed with LYD_PRINT_LIST_ONELINE, instead of a name */
+    if (value[0] == '/') {
+        name = memrchr(value, '/', value_len);
+        assert(name);
+        name++;
+        value_len -= name - value;
+        value = name;
+    }
     name = memchr(value, ':', value_len);
     if (name != NULL) {
         prefix = value;

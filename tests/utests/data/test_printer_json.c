@@ -35,10 +35,17 @@ setup(void **state)
             "          type string;"
             "        }"
             "      }"
+            "      leaf d { type string; }"
             "      list l2 {"
             "        key \"k2\";"
             "        leaf k2 {"
             "          type string;"
+            "        }"
+            "        list nested {"
+            "          key \"kn\";"
+            "          leaf kn {"
+            "            type string;"
+            "          }"
             "        }"
             "      }"
             "    }"
@@ -135,6 +142,39 @@ test_empty_leaf_list(void **state)
     lyd_free_all(tree);
 }
 
+static void
+test_top_list_oneline(void **state)
+{
+    struct lyd_node *tree;
+    char *buffer = NULL;
+    const char *data;
+
+    data = "{\"schema2:a\":{\"b\":{\"c\":\"val\",\"l\":[{\"k\":\"key1\"},{\"k\":\"key2\"}],\"d\":\"d_val\",\"l2\":[{\"k2\":\"k2A\",\"nested\":[{\"kn\":\"knA\"}]},{\"k2\":\"k2B\"}]}}}";
+    CHECK_PARSE_LYD_PARAM(data, LYD_JSON, 0, LYD_VALIDATE_PRESENT, LY_SUCCESS, tree);
+    assert_int_equal(LY_SUCCESS, lyd_print_mem(&buffer, tree, LYD_JSON, LYD_PRINT_SHRINK | LYD_PRINT_LIST_ONELINE));
+    /* each top level list entry appears on a new line */
+    CHECK_STRING(buffer, "{\"schema2:a\":{\"b\":{\"c\":\"val\",\n"
+            "\"/schema2:a/b/l\":[\n"
+            "{\"k\":\"key1\"},\n"
+            "{\"k\":\"key2\"}\n"
+            "]\n"
+            ",\"d\":\"d_val\",\n"
+            "\"/schema2:a/b/l2\":[\n"
+            "{\"k2\":\"k2A\",\"nested\":[{\"kn\":\"knA\"}]},\n"
+            "{\"k2\":\"k2B\"}\n"
+            "]\n"
+            "}}}");
+    lyd_free_all(tree);
+    tree = NULL;
+    CHECK_PARSE_LYD_PARAM(buffer, LYD_JSON, 0, LYD_VALIDATE_PRESENT, LY_SUCCESS, tree);
+    free(buffer);
+    buffer = NULL;
+    assert_int_equal(LY_SUCCESS, lyd_print_mem(&buffer, tree, LYD_JSON, LYD_PRINT_SHRINK | LYD_PRINT_LIST_ONELINE));
+    fprintf(stderr, "%s\n", buffer);
+    lyd_free_all(tree);
+    free(buffer);
+}
+
 int
 main(void)
 {
@@ -142,6 +182,7 @@ main(void)
         UTEST(test_container_presence, setup),
         UTEST(test_empty_container_wd_trim, setup),
         UTEST(test_empty_leaf_list, setup),
+        UTEST(test_top_list_oneline, setup),
     };
 
     return cmocka_run_group_tests(tests, NULL, NULL);

@@ -111,6 +111,9 @@ struct ly_out;
                                                       are not explicitly present in the original data tree despite their
                                                       value is equal to their default value.  There is the same limitation regarding
                                                       the presence of ietf-netconf-with-defaults module in libyang context. */
+
+#define LYD_PRINT_LIST_ONELINE  0x100            /**< Used with SHRINK, if set, print top level lists in a separate line for faster search. */
+
 /**
  * @}
  */

@@ -296,18 +296,26 @@ static LY_ERR
 json_print_member(struct jsonpr_ctx *pctx, const struct lyd_node *node, const struct lysc_node *snode, ly_bool is_attr)
 {
     const char *pref, *name;
+    char *path = NULL;
 
     assert(node || snode);
 
     if (node) {
         snode = node->schema;
-        name = LYD_NAME(node);
+        if ((pctx->options & LYD_PRINT_LIST_ONELINE) && snode && (snode->nodetype == LYS_LIST) && (pctx->open.count == 0)) {
+            /* if printing top level list in a separate line - print path instead of name */
+            path = lysc_path(snode, LYSC_PATH_DATA, NULL, 0);
+        } else {
+            name = LYD_NAME(node);
+        }
     } else {
         name = snode->name;
     }
 
     PRINT_COMMA;
-    if ((LEVEL == 1) || json_nscmp(node, snode, pctx->parent)) {
+    if (path) {
+        ly_print_(pctx->out, "\n%*s\"%s\":%s", INDENT, path, DO_FORMAT ? " " : "");
+    } else if ((LEVEL == 1) || json_nscmp(node, snode, pctx->parent)) {
         /* print "namespace" */
         node_prefix(node, snode, &pref, NULL);
         ly_print_(pctx->out, "%*s\"%s%s:%s\":%s", INDENT, is_attr ? "@" : "", pref, name, DO_FORMAT ? " " : "");
@@ -315,6 +323,7 @@ json_print_member(struct jsonpr_ctx *pctx, const struct lyd_node *node, const st
         ly_print_(pctx->out, "%*s\"%s%s\":%s", INDENT, is_attr ? "@" : "", name, DO_FORMAT ? " " : "");
     }
 
+    free(path);
     return LY_SUCCESS;
 }
 
@@ -694,6 +703,7 @@ json_print_inner(struct jsonpr_ctx *pctx, const struct lyd_node *node)
     struct lyd_node_opaq *opaq = NULL;
     const struct lysc_node *snode;
     ly_bool has_content = 0, no_child_print = 1;
+    const char *top_list_delim = "";
 
     LY_LIST_FOR(lyd_child(node), child) {
         if (lyd_node_should_print(child, pctx->options)) {
@@ -709,10 +719,14 @@ json_print_inner(struct jsonpr_ctx *pctx, const struct lyd_node *node)
         opaq = (struct lyd_node_opaq *)node;
     }
 
+    if ((pctx->options & LYD_PRINT_LIST_ONELINE) && node->schema && (node->schema->nodetype == LYS_LIST) && (pctx->open.count == 1)) {
+        top_list_delim = "\n";
+    }
+
     if ((node->schema && (node->schema->nodetype == LYS_LIST)) ||
             (opaq && (opaq->hints != LYD_HINT_DATA) && (opaq->hints & LYD_NODEHINT_LIST))) {
-        ly_print_(pctx->out, "%s%*s{%s", (is_open_array(pctx, node) && (pctx->level_printed >= pctx->level)) ?
-                (DO_FORMAT ? ",\n" : ",") : "", INDENT, (DO_FORMAT && has_content) ? "\n" : "");
+        ly_print_(pctx->out, "%s%s%*s{%s", (is_open_array(pctx, node) && (pctx->level_printed >= pctx->level)) ?
+                (DO_FORMAT ? ",\n" : ",") : "", top_list_delim, INDENT, (DO_FORMAT && has_content) ? "\n" : "");
     } else {
         ly_print_(pctx->out, "%s{%s", (is_open_array(pctx, node) && (pctx->level_printed >= pctx->level)) ? "," : "",
                 (DO_FORMAT && has_content) ? "\n" : "");
@@ -866,7 +880,13 @@ json_print_leaf_list(struct jsonpr_ctx *pctx, const struct lyd_node *node)
     }
 
     if (json_print_array_is_last_inst(pctx, node)) {
-        json_print_array_close(pctx);
+        if ((pctx->options & LYD_PRINT_LIST_ONELINE) && (pctx->open.count == 1) && (node->schema->nodetype == LYS_LIST)) {
+            ly_print_(pctx->out, "\n");
+            json_print_array_close(pctx);
+            ly_print_(pctx->out, "\n");
+        } else {
+            json_print_array_close(pctx);
+        }
     }
 
     return LY_SUCCESS;
