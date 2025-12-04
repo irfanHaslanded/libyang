@@ -16,7 +16,9 @@
 
 #include "in.h"
 #include "in_internal.h"
+#include "out_internal.h"
 
+#include <assert.h>
 #include <errno.h>
 #include <fcntl.h>
 #include <limits.h>
@@ -363,3 +365,104 @@ ly_in_skip(struct ly_in *in, size_t count)
     in->current += count;
     return LY_SUCCESS;
 }
+
+LIBYANG_API_DEF LY_ERR
+ly_in_filter(struct ly_in *in, const char *path, const char *key_token, struct ly_out *out)
+{
+    const char *token, *end, *line, *line_end;
+    size_t size, len;
+    int in_array = 0;
+    char last_char = '\0', *path_token = NULL;
+
+    #define COPY_LINE { ly_write(out, line, len); last_char = line[len-1]; }
+
+    LY_CHECK_ARG_RET(NULL, in, path, key_token, out, LY_EINVAL);
+    asprintf(&path_token, "\"%s\":[", path);
+
+    if (!in->length) {
+        /* determine the length! */
+        in->length = strlen(in->current);
+    }
+
+    end = in->length + in->current;
+    for (line = in->current; (line < end) && (line_end = strchr(line, '\n')); line = line_end + 1) {
+        len = line_end - line;
+        fprintf(stderr, "%s - <evaluating_line>: %.*s\n", __func__, len, line);
+
+        /* always copy the first line */
+        if (line == in->current) {
+            fprintf(stderr, "%s - <first_line>: %.*s\n", __func__, len, line);
+            COPY_LINE;
+            // is this an array start?
+            continue;
+        }
+        /* if in an array, look for our key token, and skip other lines */
+        if (in_array) {
+            if (!strncmp(key_token, line, strlen(key_token))) {
+                if (line[len-1] == ',') {
+                    len--;
+                }
+                fprintf(stderr, "%s - <key_line>: %.*s\n", __func__, len, line);
+                COPY_LINE;
+                goto skip_array;
+            } else if (line[0] == ']' && line[1] == '\n') {
+                /* end of array */
+                fprintf(stderr, "%s - <end of array>: %.*s\n", __func__, len, line);
+                COPY_LINE;
+                in_array = 0;
+            } else {
+                fprintf(stderr, "%s - <ignore_key_line>: %.*s\n", __func__, len, line);
+            }
+
+            continue;
+        }
+        /* copy any non-array content */
+        if (line[0] == ',') {
+            if (last_char == ',') {
+                line++;
+                len--;
+            }
+            fprintf(stderr, "%s - <non_array_content>: %.*s\n", __func__, len, line);
+            COPY_LINE;
+            continue;
+        }
+        /* if this is the start of an array */
+        if (line[0] == '"' && line[1] == '/') {
+            /* if it is the array we are looking for */
+            if (!strncmp(line, path_token, len)) {
+                fprintf(stderr, "%s - <path_token>: %.*s\n", __func__, len, line);
+                in_array = 1;
+                COPY_LINE;
+                continue;
+            } else {
+skip_array:
+                fprintf(stderr, "%s - <skip to end of array>: %.*s\n", __func__, len, line);
+                /* skip to the end of this array "\n]\n" */
+                token = memmem(line, end - line, "\n]\n", sizeof "\n]\n" - 1);
+                assert(token);
+                if (in_array) {
+                    in_array = 0;
+                    line = token;
+                    len = sizeof "\n]\n" - 1;
+                    COPY_LINE;
+                }
+                line_end = token + 2;
+                continue;
+            }
+        }
+    }
+    if (last_char == ',') {
+        /* overwrite a trailing comma */
+        ly_write_skip(out, 0, &size);
+        ly_write_skipped(out, size - 1, " ", 1);
+    }
+    len = end - line;
+    fprintf(stderr, "%s - <copy end of input>: %.*s\n", __func__, len, line);
+    COPY_LINE;
+#undef COPY_LINE
+    ly_print_flush(out);
+
+    return LY_SUCCESS;
+}
+
+

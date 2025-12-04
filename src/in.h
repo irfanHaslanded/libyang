@@ -85,6 +85,7 @@ extern "C" {
  * @brief Parser input structure specifying the type of data input.
  */
 struct ly_in;
+struct ly_out;
 
 /**
  * @brief Types of the parser's inputs
@@ -267,6 +268,8 @@ LIBYANG_API_DECL LY_ERR ly_in_peek(struct ly_in *in, uint8_t *peek);
  * @return LY_EDENIED on EOF.
  */
 LIBYANG_API_DECL LY_ERR ly_in_skip(struct ly_in *in, size_t count);
+
+LIBYANG_API_DECL LY_ERR ly_in_filter(struct ly_in *in, const char *path_token, const char *key_token, struct ly_out *out);
 
 /** @} input */
 

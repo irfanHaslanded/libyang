@@ -146,8 +146,11 @@ static void
 test_top_list_oneline(void **state)
 {
     struct lyd_node *tree;
-    char *buffer = NULL;
+    char *buffer = NULL, *filtered_str = NULL;
     const char *data;
+    struct ly_in *in = NULL;
+    struct ly_out *out = NULL;
+    size_t len = 0;
 
     data = "{\"schema2:a\":{\"b\":{\"c\":\"val\",\"l\":[{\"k\":\"key1\"},{\"k\":\"key2\"}],\"d\":\"d_val\",\"l2\":[{\"k2\":\"k2A\",\"nested\":[{\"kn\":\"knA\"}]},{\"k2\":\"k2B\"}]}}}";
     CHECK_PARSE_LYD_PARAM(data, LYD_JSON, 0, LYD_VALIDATE_PRESENT, LY_SUCCESS, tree);
@@ -172,7 +175,30 @@ test_top_list_oneline(void **state)
     assert_int_equal(LY_SUCCESS, lyd_print_mem(&buffer, tree, LYD_JSON, LYD_PRINT_SHRINK | LYD_PRINT_LIST_ONELINE));
     fprintf(stderr, "%s\n", buffer);
     lyd_free_all(tree);
+    tree = NULL;
+    assert_int_equal(LY_SUCCESS, ly_in_new_memory(buffer, &in));
+
+    assert_int_equal(LY_SUCCESS, ly_out_new_memory(&filtered_str, 0, &out));
+    assert_int_equal(LY_SUCCESS, ly_in_filter(in, "/schema2:a/b/l", "{\"k\":\"key2\"", out));
+    fprintf(stderr, "%s\n", filtered_str);
+
+    CHECK_PARSE_LYD_PARAM(filtered_str, LYD_JSON, 0, LYD_VALIDATE_PRESENT, LY_SUCCESS, tree);
+    assert_int_equal(LY_SUCCESS, lyd_print_mem(&buffer, tree, LYD_JSON, 0));
+    fprintf(stderr, "%s\n", buffer);
+    lyd_free_all(tree);
+    ly_out_free(out, NULL, 1);
+
+    filtered_str = NULL;
+    assert_int_equal(LY_SUCCESS, ly_out_new_memory(&filtered_str, 0, &out));
+    assert_int_equal(LY_SUCCESS, ly_in_filter(in, "/schema2:a/b/l2", "{\"k2\":\"k2A\"", out));
+    fprintf(stderr, "%s\n", filtered_str);
+
+    CHECK_PARSE_LYD_PARAM(filtered_str, LYD_JSON, 0, LYD_VALIDATE_PRESENT, LY_SUCCESS, tree);
+    assert_int_equal(LY_SUCCESS, lyd_print_mem(&buffer, tree, LYD_JSON, 0));
+    fprintf(stderr, "%s\n", buffer);
     free(buffer);
+    lyd_free_all(tree);
+    ly_out_free(out, NULL, 1);
 }
 
 int
